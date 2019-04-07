@@ -17,17 +17,25 @@ namespace DatingApp.API
 {
     public class Startup
     {
+        private const string CLIENT_URL = "http://localhost:4200";  // TODO: Obtain this from Configuration
+
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
         }
 
+        readonly string CorsAllowSpecificOriginPolicyName ="_corsAllowSpecificOriginPolicyName";
         public IConfiguration Configuration { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddDbContext<DataContext>(dbContext => dbContext.UseSqlite(Configuration.GetConnectionString("DefaultConnection")));
+            services.AddCors(options => {
+                options.AddPolicy(CorsAllowSpecificOriginPolicyName, builder => {
+                    builder.WithOrigins(CLIENT_URL); // TODO: Obtain this from Configuration
+                });
+            });
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
         }
 
@@ -44,6 +52,10 @@ namespace DatingApp.API
             //     app.UseHsts();
             // }
 
+            // app.UseCors(x => x.AllowAnyOrigin()
+            //                   .AllowAnyHeader()
+            //                   .AllowAnyMethod());
+            app.UseCors(this.CorsAllowSpecificOriginPolicyName);
             // app.UseHttpsRedirection();
             app.UseMvc();
         }
